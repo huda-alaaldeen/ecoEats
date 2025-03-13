@@ -16,7 +16,8 @@ class Restaurant extends Model
         'role_id',
         'working_hours',
         'address',
-        'restaurant_info'
+        'restaurant_info',
+        'is_approved'
     ];
 
     public function meals()

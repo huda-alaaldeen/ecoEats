@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('phone_number')->nullable();
             $table->string('diet_system')->nullable();
             $table->foreignId('role_id')->constrained()->default(1); 
+
             $table->rememberToken();
             $table->timestamps();
         });

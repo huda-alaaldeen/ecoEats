@@ -59,6 +59,7 @@ class RegisterController extends Controller
             'address' => $validatedData['address'],
             'restaurant_info' => $validatedData['restaurant_info'] ?? null,
             'role_id' => $validatedData['role_id'],
+            'is_approved' => false,
         ]);
     
     

@@ -15,9 +15,24 @@ class UserInfoController extends Controller
         ]);
     }
     public function getRestaurantInfo(Request $request){
-        $restaurant=Restaurant::findOrFail($request->user()->id);
+        $restaurant=Restaurant::findOrFail($request->id);
         return response()->json([
             'Restaurant_info'=>$restaurant
         ]);
     }
+
+    public function retrieveClients(Request $request) {
+        try {
+            $clients = User::all();
+            return response()->json([
+                'clients' => $clients
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Something went wrong',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+    
 }
