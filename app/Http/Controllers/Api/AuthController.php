@@ -51,7 +51,7 @@ class AuthController extends Controller
             return response()->json([
                 'message' => 'Login successful',
                 'token' => $token,
-                'role_id' => 3
+                'role_id' => 3,
             ]);
 }
 
@@ -62,7 +62,7 @@ class AuthController extends Controller
             return response()->json([
                 'message' => 'Login successful',
                 'token' => $token,
-               'role_id' => $admin->role_id 
+               'role_id' => $admin->role_id,
             ]);
     
         return response()->json(['message' => 'Invalid credentials'], 401);

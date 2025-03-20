@@ -22,7 +22,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'role_id',
+        'phone_number',
+        'is_vegetarian', 
     ];
 
     /**
@@ -45,10 +46,16 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_vegetarian' => 'boolean',
         ];
     }
     public function role()
     {
-        return $this->belongsTo(Role::class); // العلاقة مع جدول الـ roles
+        return $this->belongsTo(Role::class); 
+    }
+
+    public function orders()
+    {
+        return $this->hasMany(Order::class);
     }
 }

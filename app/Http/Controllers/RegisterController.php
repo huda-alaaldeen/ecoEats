@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+
 use App\Models\User;
 use App\Models\Restaurant;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
@@ -16,19 +18,21 @@ class RegisterController extends Controller
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8',
             'phone_number' => 'nullable|string|max:20',
-            'diet_system' => 'nullable|string|max:255',
-            'role_id' => 'required|integer',
+            'is_vegetarian' => 'required|boolean',
+            'role_id' => 'integer',
         ]);
-    
+        
+        $isVegetarian = $validateData['is_vegetarian'] ? 1 : 0;
+
         $user = User::create([
             'name' => $validateData['name'],
             'email' => $validateData['email'],
             'password' => Hash::make($validateData['password']),
             'phone_number' => $validateData['phone_number'] ?? null,
-            'diet_system' => $validateData['diet_system'] ?? null,
+            'is_vegetarian' => $isVegetarian,
             'role_id' => $validateData['role_id'],
         ]);
-    
+
        
         Auth::login($user);
     
@@ -47,7 +51,7 @@ class RegisterController extends Controller
             'working_hours' => 'required|string|max:255',
             'address' => 'required|string|max:255',
             'restaurant_info' => 'nullable|string',
-            'role_id' => 'required|integer',
+            'role_id' => 'integer',
         ]);
     
         $restaurant = Restaurant::create([

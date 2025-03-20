@@ -17,10 +17,9 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
-            $table->string('phone_number')->nullable();
-            $table->string('diet_system')->nullable();
-            $table->foreignId('role_id')->constrained()->default(1); 
-
+            $table->string('phone_number')->nullable()->unique();;
+            $table->boolean('is_vegetarian')->default(false); 
+            $table->integer('role_id')->default(2);      
             $table->rememberToken();
             $table->timestamps();
         });
@@ -49,5 +48,6 @@ return new class extends Migration
         Schema::dropIfExists('users');
         Schema::dropIfExists('password_reset_tokens');
         Schema::dropIfExists('sessions');
+       
     }
 };

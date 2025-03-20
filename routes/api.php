@@ -2,11 +2,14 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\MealController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\OrderController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\UserInfoController;
+use App\Http\Controllers\RestaurantController;
 
 Route::get('/user', function (Request $request) {
     return response()->json([
@@ -46,10 +49,27 @@ Route::get('/admin/unapproved-restaurants', [AdminController::class, 'unapproved
 
 Route::middleware('auth:sanctum')->post('/admin/approve-restaurant/{id}', [AdminController::class, 'approveRestaurant']);
 
+Route::middleware('auth:sanctum')->post('create/meals', [MealController::class, 'createMeal']);
 
+Route::get('/meals/{id}', [MealController::class, 'getMealDetails']);
 
+Route::get('/meals/category/{category}', [MealController::class, 'getMealsByCategory']);
 
+Route::get('/meals/price/{price}', [MealController::class, 'getMealsByPrice']);
 
+Route::get('/vegetarian-meals', [MealController::class, 'getVegetarianMeals']);
+
+Route::middleware('auth:sanctum')->get('/restaurant-meals', [MealController::class, 'getMealsForRestaurant']);
+
+Route::middleware('auth:sanctum')->post('/order', [OrderController::class, 'placeOrder']);
+
+Route::middleware('auth:sanctum')->get('/restaurant/reserved-orders', [RestaurantController::class, 'getReservedOrders']);
+
+Route::post('/order/{orderId}/pickup', [RestaurantController::class, 'markOrderAsPickedUp']);
+
+Route::post('/available/meals/{id}', [RestaurantController::class, 'getAvailableMealsInRestaurant']);
+
+Route::middleware('auth:sanctum')->get('/client/orders', [orderController::class, 'getClientOrders']);
 
 
 

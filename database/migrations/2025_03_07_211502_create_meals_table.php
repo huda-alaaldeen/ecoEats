@@ -15,12 +15,17 @@ return new class extends Migration
             $table->id();
             $table->foreignId('restaurant_id')->constrained()->onDelete('cascade');
             $table->string('name');
-            $table->json('tags')->nullable(); 
             $table->integer('available_count')->default(0);
             $table->integer('price');
             $table->string('image')->nullable();
+            $table->string('category');         // لتحديد نوع الطعام مثل شاورما، بيتزا، إلخ.
+            $table->text('description')->nullable(); 
+            $table->boolean('contains_meat')->default(false);;
+            $table->boolean('contains_chicken')->default(false);; 
+            $table->enum('status', ['available', 'reserved'])->default('available');
             $table->timestamps();
         });
+        
     }
 
     /**
