@@ -21,11 +21,11 @@ class Restaurant extends Model
     ];
 
     public function meals()
-{
-    return $this->hasMany(Meal::class);
-}
-public function orders()
-{
-    return $this->hasMany(Order::class);
-}
+    {
+        return $this->hasMany(Meal::class);
+    }
+    public function orders()
+    {
+        return $this->hasMany(Order::class);
+    }
 }

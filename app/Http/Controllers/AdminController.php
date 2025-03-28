@@ -13,7 +13,7 @@ class AdminController extends Controller
     $user = Auth::user();
 
         if ($user->role_id != 1) {
-        return response()->json(['message' => 'Unauthorized'], 403); // إذا كان ليس أدمن
+        return response()->json(['message' => 'Unauthorized'], 403); 
     }
     if (!is_numeric($id)) {
         return response()->json(['message' => 'Invalid ID'], 400);

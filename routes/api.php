@@ -71,5 +71,6 @@ Route::post('/available/meals/{id}', [RestaurantController::class, 'getAvailable
 
 Route::middleware('auth:sanctum')->get('/client/orders', [orderController::class, 'getClientOrders']);
 
+Route::middleware('auth:sanctum')->post('cancel/client/orders/{id}', [orderController::class, 'cancelReservationByClient']);
 
-
+Route::middleware('auth:sanctum')->post('cancel/resturant/orders/{id}', [orderController::class, ' cancelReservationByRestaurant']);
