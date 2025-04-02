@@ -13,11 +13,11 @@ class MealController extends Controller
     public function createMeal(Request $request)
     {
         $user = Auth::user();
-    
+
         if ($user->role_id !== 3) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
-    
+
         $request->validate([
             'name' => 'required|string|max:255',
             'available_count' => 'required|integer|min:1',
@@ -28,10 +28,10 @@ class MealController extends Controller
             'contains_meat' => 'boolean',
             'contains_chicken' => 'boolean',
         ]);
-    
-        $imagePath = $request->hasFile('image') ? 
+
+        $imagePath = $request->hasFile('image') ?
             $request->file('image')->store('meals', 'public') : null;
-    
+
         $meal = Meal::create([
             'restaurant_id' => $user->id,
             'name' => $request->name,
@@ -43,14 +43,14 @@ class MealController extends Controller
             'contains_meat' => $request->contains_meat ?? false,
             'contains_chicken' => $request->contains_chicken ?? false,
         ]);
-    
+
         return response()->json([
             'message' => 'Meal created successfully',
             'meal' => $meal,
-            'imageUrl' => $imagePath ? Storage::url($imagePath) : null,
+            'imageUrl' => $imagePath ? url('storage/' . $imagePath) : null,
         ]);
     }
-    
+
     public function getMealDetails($id)
     {
         $mealDetails = Meal::with('restaurant')->find($id);
@@ -73,7 +73,7 @@ class MealController extends Controller
         $meals = Meal::where('category', $category)->get()
             ->where('status', 'available')
             ->where('available_count', '>', 0)
-            ->get();
+            ->get(['id', 'name', 'price', 'image_url']);
         if ($meals->isEmpty()) {
             return response()->json([
                 'message' => 'No meals found for this category.'
@@ -90,7 +90,7 @@ class MealController extends Controller
         $meals = Meal::where('status', 'available')
             ->where('available_count', '>', 0)
             ->orderBy('price', $price)
-            ->get();
+            ->get(['id', 'name', 'price', 'image_url']);
 
         if ($meals->isEmpty()) {
             return response()->json([
@@ -113,7 +113,7 @@ class MealController extends Controller
                 ->where('contains_chicken', 0)
                 ->where('status', 'available')
                 ->where('available_count', '>', 0)
-                ->get();
+                ->get(['id', 'name', 'price', 'image_url']);
 
             return response()->json([
                 'meals' => $meals
@@ -146,5 +146,25 @@ class MealController extends Controller
         return response()->json([
             'meals' => $meals
         ], 200);
+    }
+
+    public function updateMealQuantity($mealId, $newQuantity)
+    {
+        $meal = Meal::findOrFail($mealId);
+
+        if ($meal->available_count == 0) {
+            $meal->available_count += $newQuantity;
+            $meal->created_at = now();
+            $meal->save();
+
+            return response()->json([
+                'message' => 'Meal quantity updated successfully.',
+                'meal' => $meal
+            ]);
+        }
+
+        return response()->json([
+            'message' => 'The meal quantity can only be updated if the quantity is zero.',
+        ], 400);
     }
 }

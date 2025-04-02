@@ -77,3 +77,6 @@ Route::middleware('auth:sanctum')->post('cancel/client/orders/{id}', [orderContr
 Route::middleware('auth:sanctum')->post('cancel/resturant/orders/{id}', [orderController::class, ' cancelReservationByRestaurant']);
 
 Route::get('/search', [searchController::class, 'search']);
+
+Route::post('/updateMealQuantity/{mealId}/{newQuantity}', [MealController::class, 'updateMealQuantity']);
+
