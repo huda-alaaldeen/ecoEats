@@ -8,20 +8,20 @@ use Illuminate\Http\Request;
 
 class UserInfoController extends Controller
 {
-    public function getClientInfo(Request $request){
-        $client=User::findOrFail($request->user()->id);
+    public function getClientInfo($id){
+        $client=User::findOrFail($id);
         return response()->json([
             'client_info'=>$client
         ]);
     }
-    public function getRestaurantInfo(Request $request){
-        $restaurant=Restaurant::findOrFail($request->id);
+    public function getRestaurantInfo($id){
+        $restaurant = Restaurant::findOrFail($id);
         return response()->json([
-            'Restaurant_info'=>$restaurant
+            'restaurant_info' => $restaurant
         ]);
     }
-
-    public function retrieveClients(Request $request) {
+    
+    public function retrieveClients() {
         try {
             $clients = User::all();
             return response()->json([

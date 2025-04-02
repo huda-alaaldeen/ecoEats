@@ -17,7 +17,11 @@ class Restaurant extends Model
         'working_hours',
         'address',
         'restaurant_info',
-        'is_approved'
+        'is_approved',
+        'working_hours_from',
+        'working_hours_to',
+        'license'
+
     ];
 
     public function meals()

@@ -6,6 +6,7 @@ use App\Http\Controllers\MealController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\searchController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\UserInfoController;
@@ -39,9 +40,9 @@ Route::middleware(['auth:sanctum'])->post('/client/delete', [RoleController::cla
 
 Route::middleware(['auth:sanctum'])->post('/restaurant/delete', [RoleController::class, 'deleteRestaurant']);
 
-Route::middleware(['auth:sanctum'])->get('/client/info', [UserInfoController::class, 'getClientInfo']);
+Route::middleware(['auth:sanctum'])->get('/client/info/{id}', [UserInfoController::class, 'getClientInfo']);
 
-Route::middleware(['auth:sanctum'])->get('/restaurant/info', [UserInfoController::class, 'getRestaurantInfo']);
+Route::middleware(['auth:sanctum'])->get('/restaurant/info/{id}', [UserInfoController::class, 'getRestaurantInfo']);
 
 Route::get('/all-clients', [UserInfoController::class, 'retrieveClients']);
 
@@ -74,3 +75,5 @@ Route::middleware('auth:sanctum')->get('/client/orders', [orderController::class
 Route::middleware('auth:sanctum')->post('cancel/client/orders/{id}', [orderController::class, 'cancelReservationByClient']);
 
 Route::middleware('auth:sanctum')->post('cancel/resturant/orders/{id}', [orderController::class, ' cancelReservationByRestaurant']);
+
+Route::get('/search', [searchController::class, 'search']);

@@ -6,49 +6,51 @@ use App\Models\Meal;
 use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class MealController extends Controller
 {
     public function createMeal(Request $request)
     {
-    $user = Auth::user();
-
-    if ($user->role_id !== 3) {
-        return response()->json(['message' => 'Unauthorized'], 403);
+        $user = Auth::user();
+    
+        if ($user->role_id !== 3) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+    
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'available_count' => 'required|integer|min:1',
+            'price' => 'required|numeric|min:0',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048', // تعديل هنا
+            'category' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'contains_meat' => 'boolean',
+            'contains_chicken' => 'boolean',
+        ]);
+    
+        $imagePath = $request->hasFile('image') ? 
+            $request->file('image')->store('meals', 'public') : null;
+    
+        $meal = Meal::create([
+            'restaurant_id' => $user->id,
+            'name' => $request->name,
+            'available_count' => $request->available_count,
+            'price' => $request->price,
+            'image' => $imagePath,
+            'category' => $request->category,
+            'description' => $request->description,
+            'contains_meat' => $request->contains_meat ?? false,
+            'contains_chicken' => $request->contains_chicken ?? false,
+        ]);
+    
+        return response()->json([
+            'message' => 'Meal created successfully',
+            'meal' => $meal,
+            'imageUrl' => $imagePath ? Storage::url($imagePath) : null,
+        ]);
     }
-
-    $request->validate([
-       'name' => 'required|string|max:255',
-        'available_count' => 'required|integer|min:1',
-        'price' => 'required|numeric|min:0',
-        'image' => 'nullable|image|max:2048',
-        'category' => 'required|string|max:255',
-        'description' => 'nullable|string',
-        'contains_meat' => 'boolean',
-        'contains_chicken' => 'boolean',
-    ]);
-
-    $imagePath = $request->file('image') ? 
-    $request->file('image')->store('meals', 'public') 
-    : null;
-
-    $meal = Meal::create([
-        'restaurant_id' => $user->id,
-        'name' => $request->name,
-        'available_count' => $request->available_count,
-        'price' => $request->price,
-        'image' => $imagePath,
-        'category' => $request->category,
-        'description' => $request->description,
-        'contains_meat' => $request->contains_meat ?? false ,
-        'contains_chicken' => $request->contains_chicken ?? false,
-
-    ]);
-
-    return response()->json(['message' => 'Meal created successfully',
-     'meal' => $meal]);
-    }
-
+    
     public function getMealDetails($id)
     {
         $mealDetails = Meal::with('restaurant')->find($id);
@@ -65,13 +67,13 @@ class MealController extends Controller
         ], 200);
     }
 
-        public function getMealsByCategory($category)
+    public function getMealsByCategory($category)
     {
-        
+
         $meals = Meal::where('category', $category)->get()
-                ->where('status', 'available') 
-                ->where('available_count', '>', 0) 
-                ->get();
+            ->where('status', 'available')
+            ->where('available_count', '>', 0)
+            ->get();
         if ($meals->isEmpty()) {
             return response()->json([
                 'message' => 'No meals found for this category.'
@@ -83,12 +85,12 @@ class MealController extends Controller
         ]);
     }
 
-        public function getMealsByPrice($price )
+    public function getMealsByPrice($price)
     {
         $meals = Meal::where('status', 'available')
-                      ->where('available_count', '>', 0)
-                      ->orderBy('price', $price)
-                      ->get();
+            ->where('available_count', '>', 0)
+            ->orderBy('price', $price)
+            ->get();
 
         if ($meals->isEmpty()) {
             return response()->json([
@@ -108,11 +110,11 @@ class MealController extends Controller
 
         if ($user && $user->is_vegetarian) {
             $meals = Meal::where('contains_meat', 0)
-                        ->where('contains_chicken', 0)
-                        ->where('status', 'available') 
-                        ->where('available_count', '>', 0)
-                        ->get();
-                        
+                ->where('contains_chicken', 0)
+                ->where('status', 'available')
+                ->where('available_count', '>', 0)
+                ->get();
+
             return response()->json([
                 'meals' => $meals
             ]);
@@ -121,31 +123,28 @@ class MealController extends Controller
                 'message' => 'No vegetarian meals available'
             ], 404);
         }
-    
-        }
+    }
 
-        public function getMealsForRestaurant()
+    public function getMealsForRestaurant()
     {
-            $restaurant = Auth::user(); 
+        $restaurant = Auth::user();
 
-            if (!$restaurant || $restaurant->role_id !=3) { 
-                return response()->json([
-                    'message' => 'Unauthorized'
-                ], 403);
-            }
-
-            $meals = Meal::where('restaurant_id', $restaurant->id)->get();
-
-            if ($meals->isEmpty()) {
-                return response()->json([
-                    'message' => 'No meals available'
-                ], 404);
-            }
-
+        if (!$restaurant || $restaurant->role_id != 3) {
             return response()->json([
-                'meals' => $meals
-            ], 200);
+                'message' => 'Unauthorized'
+            ], 403);
         }
 
+        $meals = Meal::where('restaurant_id', $restaurant->id)->get();
 
+        if ($meals->isEmpty()) {
+            return response()->json([
+                'message' => 'No meals available'
+            ], 404);
+        }
+
+        return response()->json([
+            'meals' => $meals
+        ], 200);
+    }
 }

@@ -18,7 +18,7 @@ return new class extends Migration
             $table->integer('available_count')->default(0);
             $table->integer('price');
             $table->string('image')->nullable();
-            $table->string('category');         // لتحديد نوع الطعام مثل شاورما، بيتزا، إلخ.
+            $table->string('category');         
             $table->text('description')->nullable(); 
             $table->boolean('contains_meat')->default(false);;
             $table->boolean('contains_chicken')->default(false);; 
