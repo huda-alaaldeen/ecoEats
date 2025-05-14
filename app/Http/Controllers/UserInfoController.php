@@ -5,23 +5,37 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Models\Restaurant;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class UserInfoController extends Controller
 {
-    public function getClientInfo($id){
-        $client=User::findOrFail($id);
+    public function getClientInfoById($id)
+    {
+        $client = User::findOrFail($id);
         return response()->json([
-            'client_info'=>$client
+            'client_info' => $client
         ]);
     }
-    public function getRestaurantInfo($id){
-        $restaurant = Restaurant::findOrFail($id);
+
+    public function getClientInfo()
+    {
         return response()->json([
-            'restaurant_info' => $restaurant
+            'client_info' => Auth::user()
         ]);
     }
-    
-    public function retrieveClients() {
+
+
+
+    public function getClients()
+    {
+        $clients=User::all();
+        return response()->json([
+            'clients' => $clients
+        ]);
+    }
+
+    public function retrieveClients()
+    {
         try {
             $clients = User::all();
             return response()->json([
@@ -34,5 +48,13 @@ class UserInfoController extends Controller
             ], 500);
         }
     }
-    
+
+
+    public function getRestaurantInfoByToken()
+    {
+        $restaurant = Auth::user();
+        return response()->json([
+            'restaurant_info' => $restaurant
+        ]);
+    }
 }

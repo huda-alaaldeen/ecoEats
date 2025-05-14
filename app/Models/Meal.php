@@ -19,6 +19,9 @@ class Meal extends Model
         'description',
         'tags',
         'status',
+        'contains_meat',
+        'contains_chicken',
+        'original_price'
     ];
 
 

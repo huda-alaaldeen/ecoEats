@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Intervention\Image\ImageManager;
+use Intervention\Image\Drivers\Gd\Driver;
 
 class RegisterController extends Controller
 {
@@ -44,6 +46,23 @@ class RegisterController extends Controller
         ], 201);
     }
 
+    protected function generateImageUrl($path)
+    {
+        if (empty($path)) {
+            return null;
+        }
+
+        $cleanPath = ltrim(str_replace('storage/', '', $path), '/');
+
+        if (Storage::disk('public')->exists($cleanPath)) {
+            return app()->environment('local')
+                ? 'https://4399-91-186-255-241.ngrok-free.app/storage/' . $cleanPath
+                : url('storage/' . $cleanPath);
+        }
+
+        return null;
+    }
+
     public function registerRestaurant(Request $request)
     {
         $validatedData = $request->validate([
@@ -55,16 +74,31 @@ class RegisterController extends Controller
             'working_hours_to' => 'required|string',
             'address' => 'required|string|max:255',
             'restaurant_info' => 'nullable|string',
-            'role_id' => 'integer',
-            'license' => 'nullable|image|mimes:jpeg,png,jpg,gif',
+            'role_id' => 'nullable|integer',
+            'license' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:4096',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:4096',
         ]);
-
+    
+        // Handle license
+        $licensePath = null;
         if ($request->hasFile('license')) {
-            $licensePath = $request->file('license')->store('licenses', 'public');
-        } else {
-            $licensePath = null;
+            $file = $request->file('license');
+            $ext = $file->getClientOriginalExtension();
+            $filename = uniqid() . '.' . $ext;
+            Storage::disk('public')->put('licenses/' . $filename, file_get_contents($file));
+            $licensePath = 'licenses/' . $filename;
         }
-
+    
+        // Handle image
+        $imagePath = null;
+        if ($request->hasFile('image')) {
+            $file = $request->file('image');
+            $ext = $file->getClientOriginalExtension();
+            $filename = uniqid() . '.' . $ext;
+            Storage::disk('public')->put('restaurant_images/' . $filename, file_get_contents($file));
+            $imagePath = 'restaurant_images/' . $filename;
+        }
+    
         $restaurant = Restaurant::create([
             'name' => $validatedData['name'],
             'email' => $validatedData['email'],
@@ -74,21 +108,83 @@ class RegisterController extends Controller
             'working_hours_to' => $validatedData['working_hours_to'],
             'address' => $validatedData['address'],
             'restaurant_info' => $validatedData['restaurant_info'] ?? null,
-            'role_id' => $validatedData['role_id'],
+            'role_id' => $validatedData['role_id'] ?? 3,
             'license' => $licensePath,
-            'is_approved' => false,
+            'image' => $imagePath,
         ]);
-
-        if ($licensePath) {
-            $imageUrl = Storage::url($licensePath);
-        } else {
-            $imageUrl = null;
-        }
-
+    
+        // Generate public URLs
+        $restaurant->license = $this->generateImageUrl($licensePath);
+        $restaurant->image = $this->generateImageUrl($imagePath);
+    
         return response()->json([
-            'message' => 'Restaurant successfully registered',
+            'message' => 'Restaurant registered successfully',
             'restaurant' => $restaurant,
-            'license_url' => $imageUrl,
         ], 201);
     }
+    
+
+    public function getRestaurants()
+    {
+        $restaurants = Restaurant::all();
+        $restaurants->transform(function ($restaurant) {
+            $restaurant->image = $this->generateImageUrl($restaurant->image);
+            $restaurant->license = $this->generateImageUrl($restaurant->license);
+            return $restaurant;
+        });
+
+        return response()->json([
+            'message' => 'All restaurants retrieved successfully',
+            'restaurants' => $restaurants
+        ]);
+    }
+
+    public function getRestaurantInfo($id)
+    {
+        $restaurant = Restaurant::findOrFail($id);
+
+        $restaurant->image = $this->generateImageUrl($restaurant->image);
+        $restaurant->license = $this->generateImageUrl($restaurant->license);
+
+        return response()->json([
+            'restaurant_info' => $restaurant
+        ]);
+    }
+
+  
+    public function getUnapprovedRestaurants()
+    {
+        $licenses = Restaurant::where('is_approved', false)
+            ->get()
+            ->map(function ($restaurant) {
+                return [
+                    'id'=>$restaurant->id,
+                    'name' => $restaurant->name,
+                    'license' => $this->generateImageUrl($restaurant->license),
+                ];
+            });
+    
+        return response()->json([
+            'unapproved_restaurant_licenses' => $licenses
+        ]);
+    }
+    
+    public function getApprovedRestaurants()
+    {
+        $licenses = Restaurant::where('is_approved', true)
+            ->get()
+            ->map(function ($restaurant) {
+                return [
+                    'id'=>$restaurant->id,
+                    'name' => $restaurant->name,
+                    'license' => $this->generateImageUrl($restaurant->license),
+                ];
+            });
+    
+        return response()->json([
+            'approved_restaurant_licenses' => $licenses
+        ]);
+    }
+    
+    
 }

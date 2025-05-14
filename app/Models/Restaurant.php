@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Restaurant extends Model
 {
@@ -20,7 +21,8 @@ class Restaurant extends Model
         'is_approved',
         'working_hours_from',
         'working_hours_to',
-        'license'
+        'license',
+        'image'
 
     ];
 
@@ -32,4 +34,5 @@ class Restaurant extends Model
     {
         return $this->hasMany(Order::class);
     }
+    
 }

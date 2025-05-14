@@ -12,19 +12,15 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('restaurants', function (Blueprint $table) {
-            $table->string('working_hours_from')->nullable()->change();
-            $table->string('working_hours_to')->nullable()->change();
+            $table->string('image')->nullable()->after('password'); 
         });
     }
-
-    /**
-     * Reverse the migrations.
-     */
+    
     public function down(): void
     {
         Schema::table('restaurants', function (Blueprint $table) {
-            $table->time('working_hours_from')->change();
-            $table->time('working_hours_to')->change();
+            $table->dropColumn('image');
         });
     }
+    
 };
