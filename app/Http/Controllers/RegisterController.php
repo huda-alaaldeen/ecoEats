@@ -9,9 +9,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Storage;
 use Intervention\Image\ImageManager;
-use Intervention\Image\Drivers\Gd\Driver;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Storage;
 
 class RegisterController extends Controller
 {
@@ -46,22 +46,37 @@ class RegisterController extends Controller
         ], 201);
     }
 
+
+    
     protected function generateImageUrl($path)
     {
         if (empty($path)) {
             return null;
         }
-
+    
         $cleanPath = ltrim(str_replace('storage/', '', $path), '/');
-
-        if (Storage::disk('public')->exists($cleanPath)) {
-            return app()->environment('local')
-                ? 'https://4399-91-186-255-241.ngrok-free.app/storage/' . $cleanPath
-                : url('storage/' . $cleanPath);
+    
+        /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
+        $disk = Storage::disk('public');
+    
+        if (!$disk->exists($cleanPath)) {
+            return null;
         }
-
-        return null;
+    
+        try {
+            $fileContent = $disk->get($cleanPath);
+            $mimeType = $disk->mimeType($cleanPath) ?? 'application/octet-stream';
+    
+            $base64 = base64_encode($fileContent);
+            return "data:{$mimeType};base64,{$base64}";
+        } catch (\Throwable $e) {
+            return null;
+        }
     }
+    
+    
+    
+        
 
     public function registerRestaurant(Request $request)
     {
@@ -79,7 +94,6 @@ class RegisterController extends Controller
             'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:4096',
         ]);
     
-        // Handle license
         $licensePath = null;
         if ($request->hasFile('license')) {
             $file = $request->file('license');
@@ -89,7 +103,6 @@ class RegisterController extends Controller
             $licensePath = 'licenses/' . $filename;
         }
     
-        // Handle image
         $imagePath = null;
         if ($request->hasFile('image')) {
             $file = $request->file('image');
@@ -113,7 +126,6 @@ class RegisterController extends Controller
             'image' => $imagePath,
         ]);
     
-        // Generate public URLs
         $restaurant->license = $this->generateImageUrl($licensePath);
         $restaurant->image = $this->generateImageUrl($imagePath);
     

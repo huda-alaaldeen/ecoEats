@@ -22,28 +22,28 @@ class OrderController extends Controller
                 'message' => 'Unauthorized'
             ], 403);
         }
-    
+
         $validatedData = $request->validate([
             'meal_id'  => 'required|exists:meals,id',
             'quantity' => 'required|integer|min:1',
         ]);
-    
+
         $meal = Meal::find($validatedData['meal_id']);
-    
+
         if ($meal->status !== 'available') {
             return response()->json(['message' => 'Meal is not available for ordering.'], 422);
         }
-    
+
         if ($meal->available_count < $validatedData['quantity']) {
             return response()->json(['message' => 'Not enough available count.'], 422);
         }
-    
+
         $meal->available_count -= $validatedData['quantity'];
         if ($meal->available_count == 0) {
             $meal->status = 'reserved';
         }
         $meal->save();
-    
+
         $order = Order::create([
             'meal_id'       => $meal->id,
             'restaurant_id' => $meal->restaurant_id,
@@ -53,24 +53,24 @@ class OrderController extends Controller
             'pickup_time'   => now()->addHour(),
             'status'        => 'Reserved',
         ]);
-    
+
         return response()->json([
             'message' => 'Order placed successfully.',
             'order'   => $order,
         ], 201);
     }
-    
+
     public function getClientOrders()
     {
         $clientId = Auth::user()->id;
-    
+
         $orders = Order::where('user_id', $clientId)
             ->where('status', 'Reserved')
-            ->select('id','quantity','total_price','pickup_time','meal_id', 'restaurant_id')
-            ->with('restaurant:id,name,phone_number,address') 
+            ->select('id', 'quantity', 'total_price', 'pickup_time', 'meal_id', 'restaurant_id')
+            ->with('restaurant:id,name,phone_number,address')
             ->with('meal:id,name')
             ->get();
-    
+
         return response()->json([
             'orders' => $orders,
         ], 200);
@@ -79,20 +79,22 @@ class OrderController extends Controller
     public function getClientOrdersHistory()
     {
         $clientId = Auth::user()->id;
-    
+
         $orders = Order::where('user_id', $clientId)
-            ->where('status', 'Picked Up')
-            ->select('quantity','total_price','pickup_time','meal_id', 'restaurant_id')
-            ->with('restaurant:id,name,phone_number,address') 
+            ->whereIn('status', ['Picked Up', 'Reserved'])
+            ->select('quantity', 'total_price', 'pickup_time', 'meal_id', 'restaurant_id', 'status')
+            ->with('restaurant:id,name,phone_number,address')
             ->with('meal:id,name')
             ->get();
-    
+
         return response()->json([
             'orders' => $orders,
         ], 200);
     }
-    
-    
+
+
+
+
 
     public function cancelReservationByClient($orderId)
     {

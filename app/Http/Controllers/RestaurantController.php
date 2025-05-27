@@ -9,28 +9,32 @@ use App\Models\Restaurant;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 
 class RestaurantController extends Controller
 {
 
+    
     protected function generateImageUrl($path)
     {
-        if (empty($path)) {
-            return null;
-        }
-
-        $cleanPath = ltrim(str_replace('storage/', '', $path), '/');
-
-        if (Storage::disk('public')->exists($cleanPath)) {
-            return app()->environment('local')
-                ? 'https://4399-91-186-255-241.ngrok-free.app/storage/' . $cleanPath
-                : url('storage/' . $cleanPath);
-        }
-
-        return null;
+    if (empty($path)) {
+    return null;
     }
-
+    
+    $cleanPath = ltrim(str_replace('storage/', '', $path), '/');
+    
+    if (Storage::disk('public')->exists($cleanPath)) {
+    return app()->environment('local')
+    ? 'https://4399-91-186-255-241.ngrok-free.app/storage/' . $cleanPath
+    : url('storage/' . $cleanPath);
+    }
+    
+    return null;
+    }
+    
+    
+    
     public function getAvailableMealsInRestaurant($id)
     {
         $meals = Meal::where('restaurant_id', $id)
